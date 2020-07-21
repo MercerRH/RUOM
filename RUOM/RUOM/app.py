@@ -2,15 +2,16 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-import gevent
+# import gevent
+import threading
 import socket
 import re
 import configparser
 
-from gevent import monkey
-
-# 修补
-monkey.patch_socket()
+# from gevent import monkey
+#
+# # 修补
+# monkey.patch_socket()
 
 from .application import application
 
@@ -19,13 +20,14 @@ class RUOM_Server(object):
     """
     RUOM服务器类
     各函数功能：
-
+        run_forever:     运行服务器，与客户端建立连接并为每个客户端创建相应的线程
+        client_handle:   对客户端请求进行解析，进行路由分发，并发送响应数据
     """
 
     def __init__(self, server_conf):
         # 读取配置文件信息
         config = configparser.ConfigParser()
-        config.read("./conf/_server_config.ini", encoding='utf-8')
+        config.read("RUOM/conf/_server_config.ini", encoding='utf-8')
         server = (config[server_conf]['ip'], int(config[server_conf]['port']))  # 服务器信息
 
         # 创建套接字
@@ -35,17 +37,18 @@ class RUOM_Server(object):
         # 绑定本地信息
         self.s.bind(server)
         # 变为监听套接字，最大连接数为128
-        self.s.listen(128)
-        self.response_header = ''
+        self.s.listen(int(config[server_conf]['socket_fd']))
 
-    def run_forver(self):
+    def run_forever(self):
         """运行服务器"""
         while True:
             # 等待连接请求
             cli_socket, cli_addr = self.s.accept()
             # 使用协程分别对各个连接进行处理
             cli_cls = Client()
-            gevent.spawn(self.client_handle, cli_socket, cli_cls)
+            # gevent.spawn(self.client_handle, cli_socket, cli_cls)
+            t = threading.Thread(target=self.client_handle, args=(cli_socket, cli_cls))
+            t.start()
 
     def client_handle(self, client_socket, cli_cls):
         """
@@ -54,29 +57,32 @@ class RUOM_Server(object):
         """
         while True:
             # 接收数据
+            print("==========开始接收数据>")
             cli_request = client_socket.recv(1024).decode('utf-8')
-            print(gevent.getcurrent())
-            print(cli_request)
+            print("======== cli_request: >", cli_request)
 
             # 客户端关闭套接字时关闭本套接字
-            if not cli_request:
-                client_socket.close()
-                break
+            # if not cli_request:
+            #     client_socket.close()
+            #     break
 
             # 对收到的请求数据进行处理
             cli_request_lines = cli_request.splitlines()
-            for i, line in enumerate(cli_request_lines):
-                print(str(i), line)
-            # 提取请求的视图函数
-            request_url = re.match(r'.*\s/(.*)\s.*', cli_request_lines[0])
+            print("=========== request_lines[0] >", cli_request_lines[0])
+            request_url = re.match(r'.*\s(.*)\s.*', cli_request_lines[0]).group(1)
+            print("============ request_url >", request_url)
 
             # 对请求进行分发
             response_body = application(request_url, cli_request_lines, cli_cls.start_response)
             response_head = cli_cls.response_head
-            response_data = response_head + '\r\n\r\n' + response_body
+            print('=============== response_head response_body >', response_head, response_body)
+            response_data = response_head + '\r\n\r\n' + response_body + '\n'
 
             # 发送响应数据
             client_socket.send(response_data.encode('utf-8'))
+            print("============ 数据发送成功")
+            client_socket.close()
+            break
 
 
 class Client(object):

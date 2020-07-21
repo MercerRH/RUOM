@@ -1,6 +1,7 @@
-from ..RUOM.views import append_to_url
-
-
-@append_to_url('/test')
+# from ..RUOM.views import route
+#
+#
+# @route('/test')
 def test():
+    """测试用视图函数"""
     return 'Hello world: test view_func'

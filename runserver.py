@@ -12,7 +12,7 @@ def main():
 
     print("Server Start:")
     app = RUOM_Server(sys.argv[1])
-    app.run_forver()
+    app.run_forever()
 
 
 if __name__ == "__main__":
