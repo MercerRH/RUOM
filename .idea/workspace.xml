@@ -3,8 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="e1cfd4fa-dab7-485f-979d-02f517173b11" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RUOM/RUOM/orm.py" beforeDir="false" afterPath="$PROJECT_DIR$/RUOM/RUOM/orm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RUOM/test_/test_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/RUOM/test_/test_view.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RUOM/RUOM/application.py" beforeDir="false" afterPath="$PROJECT_DIR$/RUOM/RUOM/application.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RUOM/RUOM/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/RUOM/RUOM/urls.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -117,6 +117,12 @@
       <workItem from="1595291563624" duration="17841000" />
       <workItem from="1595380323840" duration="14300000" />
       <workItem from="1595468626962" duration="20321000" />
+      <workItem from="1595555843318" duration="4581000" />
+      <workItem from="1595640108957" duration="2735000" />
+      <workItem from="1595727740904" duration="2033000" />
+      <workItem from="1595743044166" duration="857000" />
+      <workItem from="1595746427677" duration="672000" />
+      <workItem from="1595834987526" duration="2081000" />
     </task>
     <servers />
   </component>

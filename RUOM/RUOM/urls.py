@@ -14,8 +14,8 @@ def init():
 
 # 路由
 urls = [
-    ('/', init),
-    ('/test', test_view.test)
+    (r'^/$', init),
+    (r'^/test/(.*)$', test_view.test)
 ]
 
 
