@@ -57,9 +57,9 @@ class RUOM_Server(object):
         """
         while True:
             # 接收数据
-            print("==========开始接收数据>")
+            print("== app.py == cls:RUOM_Server == func:client_handle == 开始接收数据 ==>")
             cli_request = client_socket.recv(1024).decode('utf-8')
-            print("======== cli_request: >", cli_request)
+            print("== app.py == cls:RUOM_Server == func:client_handle == cli_request: ==>", cli_request)
 
             # 客户端关闭套接字时关闭本套接字
             # if not cli_request:
@@ -68,19 +68,19 @@ class RUOM_Server(object):
 
             # 对收到的请求数据进行处理
             cli_request_lines = cli_request.splitlines()
-            print("=========== request_lines[0] >", cli_request_lines[0])
+            print("== app.py == cls:RUOM_Server == func:client_handle == request_lines[0] ==>", cli_request_lines[0])
             request_url = re.match(r'.*\s(.*)\s.*', cli_request_lines[0]).group(1)
-            print("============ request_url >", request_url)
+            print("== application.py == cls:RUOM_Server == func:client_handle == request_url ==>", request_url)
 
             # 对请求进行分发
             response_body = application(request_url, cli_request_lines, cli_cls.start_response)
             response_head = cli_cls.response_head
-            print('=============== response_head response_body >', response_head, response_body)
+            print('== app.py == cls:RUOM_Server == func:client_handle == response_head/response_body ==>', response_head, response_body)
             response_data = response_head + '\r\n\r\n' + response_body + '\n'
 
             # 发送响应数据
             client_socket.send(response_data.encode('utf-8'))
-            print("============ 数据发送成功")
+            print("== app.py == cls:RUOM_Server == func:client_handle == 数据发送成功 ==>")
             client_socket.close()
             break
 

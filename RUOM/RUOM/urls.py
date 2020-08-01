@@ -4,7 +4,6 @@
 使用方法：
     将视图函数添加到路由中即可
 """
-from ..test_ import test_view
 
 
 def init():
@@ -13,11 +12,16 @@ def init():
 
 
 # 路由
-urls = [
+url_list = [
     (r'^/$', init),
-    (r'^/test/(.*)$', test_view.test)
 ]
 
+# 添加测试用app的路由
+from ..test_ import urls as test_urls
+
+for i in test_urls.urls:
+    url_list.append(i)
+urls = url_list
 
 # # 路由装饰器
 # def route(url_path):
@@ -29,4 +33,3 @@ urls = [
 #         return func_in
 #
 #     return middle
-
