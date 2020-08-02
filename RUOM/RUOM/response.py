@@ -17,7 +17,7 @@ def TemplateRender(file_path, context):
     while loop_len != len(a):
         temp = a[loop_len]
         variable_result = re.findall(r'{{(.*?)}}', temp)  # 匹配到的模板变量，储存为list变量
-        label_result = re.findall(r'{%(.*?)%}', temp)  # 匹配到的模板语句，储存为list变量
+        # label_result = re.findall(r'{%(.*?)%}', temp)  # 匹配到的模板语句，储存为list变量（暂不支持）
 
         # 对模板变量进行处理
         for i in variable_result:

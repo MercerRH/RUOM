@@ -1,4 +1,5 @@
 """模型元类与模型类基类"""
+import pymysql
 
 
 class Model_metaclass(type):
@@ -22,6 +23,11 @@ class Model_metaclass(type):
         # 删除模型类的类属性
         for k in mappings.keys():
             attrs.pop(k)
+
+        # 在数据库中建表
+        sql_conn = pymysql.connect()
+        # 获取cursor对象
+        cursor = sql_conn.cursor()
 
         # 将原来的类属性存入一个新的私有属性
         attrs['__mappings__'] = mappings
@@ -229,11 +235,11 @@ class Model(metaclass=Model_metaclass):
 
 
 
-class test_model(Model):
-    """测试用模型类"""
-    name = ('user_name', 'varchar(30)')  # 使用元组储存字段名与字段类型
-    age = ('user_age', 'int unsigned')  # 字段类型为sql语法
-    is_delete = ('is_delete', 'boolean')
+# class test_model(Model):
+#     """测试用模型类"""
+#     name = ('user_name', 'varchar(30)')  # 使用元组储存字段名与字段类型
+#     age = ('user_age', 'int unsigned')  # 字段类型为sql语法
+#     is_delete = ('is_delete', 'boolean')
 
 
 # # 测试语句

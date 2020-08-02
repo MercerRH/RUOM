@@ -1,11 +1,7 @@
-# from ..RUOM.views import route
-from .test_model import test_model
-from ..RUOM.response import TemplateRender
+from test_.test_model import test_model
+from RUOM.response import TemplateRender
 
 
-#
-#
-# @route('/test')
 def test(parameters):
     """测试用视图函数"""
     u = test_model()

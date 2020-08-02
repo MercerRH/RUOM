@@ -1,4 +1,4 @@
-from ..test_ import test_view
+from test_ import test_view
 
 
 urls = [

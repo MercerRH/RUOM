@@ -11,7 +11,7 @@ import configparser
 # from gevent import monkey
 #
 # # 修补
-# monkey.patch_socket()
+# monkey.patch_all()
 
 from .application import application
 
@@ -44,9 +44,10 @@ class RUOM_Server(object):
         while True:
             # 等待连接请求
             cli_socket, cli_addr = self.s.accept()
-            # 使用协程分别对各个连接进行处理
             cli_cls = Client()
+            # # 使用协程分别对各个连接进行处理
             # gevent.spawn(self.client_handle, cli_socket, cli_cls)
+            # 使用线程分别对各个连接进行处理
             t = threading.Thread(target=self.client_handle, args=(cli_socket, cli_cls))
             t.start()
 
@@ -55,34 +56,28 @@ class RUOM_Server(object):
         对客户端请求进行处理，对请求的资源进行判断、分发
         接收的参数为客户端套接字
         """
-        while True:
-            # 接收数据
-            print("== app.py == cls:RUOM_Server == func:client_handle == 开始接收数据 ==>")
-            cli_request = client_socket.recv(1024).decode('utf-8')
-            print("== app.py == cls:RUOM_Server == func:client_handle == cli_request: ==>", cli_request)
+        # while True:
+        # 接收数据
+        cli_request = client_socket.recv(1024).decode('utf-8')
 
-            # 客户端关闭套接字时关闭本套接字
-            # if not cli_request:
-            #     client_socket.close()
-            #     break
+        # # 客户端关闭套接字时关闭本套接字
+        # if not cli_request:
+        #     client_socket.close()
+        #     break
 
-            # 对收到的请求数据进行处理
-            cli_request_lines = cli_request.splitlines()
-            print("== app.py == cls:RUOM_Server == func:client_handle == request_lines[0] ==>", cli_request_lines[0])
-            request_url = re.match(r'.*\s(.*)\s.*', cli_request_lines[0]).group(1)
-            print("== application.py == cls:RUOM_Server == func:client_handle == request_url ==>", request_url)
+        # 对收到的请求数据进行处理
+        cli_request_lines = cli_request.splitlines()
+        request_url = re.match(r'.*\s(.*)\s.*', cli_request_lines[0]).group(1)
 
-            # 对请求进行分发
-            response_body = application(request_url, cli_request_lines, cli_cls.start_response)
-            response_head = cli_cls.response_head
-            print('== app.py == cls:RUOM_Server == func:client_handle == response_head/response_body ==>', response_head, response_body)
-            response_data = response_head + '\r\n\r\n' + response_body + '\n'
+        # 对请求进行分发
+        response_body = application(request_url, cli_request_lines, cli_cls.start_response)
+        response_head = cli_cls.response_head
+        response_data = response_head + '\r\n\r\n' + response_body + '\n'
 
-            # 发送响应数据
-            client_socket.send(response_data.encode('utf-8'))
-            print("== app.py == cls:RUOM_Server == func:client_handle == 数据发送成功 ==>")
-            client_socket.close()
-            break
+        # 发送响应数据
+        client_socket.send(response_data.encode('utf-8'))
+        print("== app.py == cls:RUOM_Server == func:client_handle == 数据发送成功 ==>")
+        client_socket.close()
 
 
 class Client(object):

@@ -1,4 +1,4 @@
-from ..RUOM.orm import Model
+from RUOM.orm import Model
 
 
 class test_model(Model):

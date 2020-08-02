@@ -1,5 +1,5 @@
 """视图函数装饰器，实现将视图函数转为WSGI协议中的application函数"""
-from . import urls
+from RUOM import urls
 import re
 
 
@@ -15,18 +15,18 @@ def application(request_url, request_lines, start_response):
         for url_tuple in urls.urls:
             re_match = re.match(url_tuple[0], request_url)
             if re_match is not None:
-                print('== application.py == func:application == re_match ==>', re_match)
+                # print('== application.py == func:application == re_match ==>', re_match)
                 view_func = url_tuple[1]
                 parameters = re_match.groups()
-                print('== application.py == func:application == request_lines in application ==>', request_lines)
+                # print('== application.py == func:application == request_lines in application ==>', request_lines)
                 start_response('HTTP/1.1 200 OK', [])
-                print("== application.py == func:application == urls ==>", urls.urls)
+                # print("== application.py == func:application == urls ==>", urls.urls)
                 if len(parameters) == 0:
                     return view_func()
                 elif len(parameters) == 0:
                     return view_func(*parameters)
     except Exception as e:
-        print('== application.py == func:application == application Exception ==>', e)
+        # print('== application.py == func:application == application Exception ==>', e)
         start_response('HTTP/1.1 404 Not Found', [])
         return 'File Not Found'
     else:

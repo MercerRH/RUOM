@@ -17,7 +17,7 @@ url_list = [
 ]
 
 # 添加测试用app的路由
-from ..test_ import urls as test_urls
+from test_ import urls as test_urls
 
 for i in test_urls.urls:
     url_list.append(i)
