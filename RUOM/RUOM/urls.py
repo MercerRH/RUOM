@@ -11,17 +11,35 @@ def init():
     return "Hello RUOM"
 
 
-# 路由
+# 路由表
 url_list = [
     (r'^/$', init),
 ]
 
-# 添加测试用app的路由
-from test_ import urls as test_urls
 
-for i in test_urls.urls:
-    url_list.append(i)
-urls = url_list
+# 将应用路由添加到路由表的函数
+def add_to_urls(app_urls):
+    for i in app_urls:
+        url_list.append(i)
+    return url_list
+
+
+# 将用于 applications 中的路由表
+urls = add_to_urls([])
+
+
+######## ↓↓↓↓↓↓↓↓↓↓↓↓↓↓在此添加测试用app的路由↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+######## ↓↓↓↓↓↓↓↓↓↓↓↓↓↓在此添加测试用app的路由↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+
+
+
+from test_ import urls as test_urls
+urls = add_to_urls(test_urls.urls)
+
+
+######## ↑↑↑↑↑↑↑↑↑↑↑↑↑↑在此添加测试用app的路由↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+######## ↑↑↑↑↑↑↑↑↑↑↑↑↑↑在此添加测试用app的路由↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
 
 # # 路由装饰器
 # def route(url_path):

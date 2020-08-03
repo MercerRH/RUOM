@@ -27,7 +27,7 @@ class RUOM_Server(object):
     def __init__(self, server_conf):
         # 读取配置文件信息
         config = configparser.ConfigParser()
-        config.read("RUOM/conf/_server_config.ini", encoding='utf-8')
+        config.read("./RUOM/conf/_server_config.ini", encoding='utf-8')
         server = (config[server_conf]['ip'], int(config[server_conf]['port']))  # 服务器信息
 
         # 创建套接字

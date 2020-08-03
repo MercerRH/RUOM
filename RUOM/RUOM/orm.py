@@ -1,5 +1,7 @@
 """模型元类与模型类基类"""
 import pymysql
+import configparser
+import sys
 
 
 class Model_metaclass(type):
@@ -24,11 +26,6 @@ class Model_metaclass(type):
         for k in mappings.keys():
             attrs.pop(k)
 
-        # 在数据库中建表
-        sql_conn = pymysql.connect()
-        # 获取cursor对象
-        cursor = sql_conn.cursor()
-
         # 将原来的类属性存入一个新的私有属性
         attrs['__mappings__'] = mappings
         attrs['__table__'] = name
@@ -39,9 +36,34 @@ class Model(metaclass=Model_metaclass):
     """
     用户模型类的基类
     """
-
     def __init__(self):
-        pass
+        # 用于储存用户模型类生成的sql语句，用于事务操作
+        self.sql_list = []
+
+        # 读取数据库配置文件
+        config = configparser.ConfigParser()
+        config.read("RUOM/conf/_server_config.ini", encoding='utf-8')
+        db_host = config[sys.argv[1]]['db_host']
+        db_port = config[sys.argv[1]]['db_port']
+        db_user = config[sys.argv[1]]['db_user']
+        db_password = config[sys.argv[1]]['db_password']
+        db_name = config[sys.argv[1]]['db_name']
+        db_charset = config[sys.argv[1]]['db_charset']
+
+        # 连接数据库
+        self.sql_conn = pymysql.connect(host=db_host, port=db_port, database=db_name, user=db_user, password=db_password, charset=db_charset)
+        # 获取cursor对象
+        self.cursor = self.sql_conn.cursor()
+        # 格式化创建表的sql语句
+        sql = 'create table {table_name}(id int unsigned primary key auto_increment not null,'.format(table_name=self.__table__)
+        for i in self.__mappings__.values():
+            for j in i:
+                sql += j + ' '
+            sql += ','
+        sql += ')'
+        # print(sql)
+        # 在数据库中创建表
+        self.cursor.execute(sql)
 
     def Insert(self, **kwargs):
         """
@@ -52,18 +74,16 @@ class Model(metaclass=Model_metaclass):
         """
 
         class Insert_class(Model):
-            def __init__(self, table_name, mappings, **kwargs):
+            def __init__(self, table_name, mappings, sql_list, **kwargs):
                 self.__mappings__ = mappings
                 self.__table__ = table_name
+                self.sql_list = sql_list
+
                 # 将变量储存为实例属性
                 for k, v in kwargs.items():
-                    print("Found Value ===== ", k, ':', v)
+                    # print("Found Value ===== ", k, ':', v)
                     setattr(self, k, v)  # 注意！不能使用 self.k = v 来储存
 
-                # 初始化完成后，执行 save() 方法将 sql 语句添加到事务中
-                self.save()
-
-            def save(self):
                 """将SQL语句添加到事务中"""
                 field = list()  # 用于格式化sql语句时储存的字段名
                 args = list()  # 用于格式化sql语句时储存的数据
@@ -83,26 +103,29 @@ class Model(metaclass=Model_metaclass):
                 sql = 'insert into {table_name} ({field}) values ({args})'.format(table_name=self.__table__,
                                                                                   field=','.join(field),
                                                                                   args=','.join(args_temp))
-                print("插入：", sql)  # 测试用
 
-        i = Insert_class(self.__table__, self.__mappings__, **kwargs)
+                print("插入：", sql)  # 测试用
+                self.sql_list.append(sql)
+
+        i = Insert_class(self.__table__, self.__mappings__, self.sql_list, **kwargs)
         return i
 
     def Delete(self, **kwargs):
         class Delete_class(metaclass=Model_metaclass):
             """删除数据"""
 
-            def __init__(self, table_name, mappings, **kwargs):
+            def __init__(self, table_name, mappings, sql_list, **kwargs):
                 self.__mappings__ = mappings
                 self.__table__ = table_name
+                self.sql_list = sql_list
+
                 for k, v in kwargs.items():
-                    print("Found Value ===== ", k, ':', v)
+                    # print("Found Value ===== ", k, ':', v)
                     setattr(self, k, v)  # 注意！不能使用 self.k = v 来储存
 
                 # 初始化完成后，执行 save() 方法将 sql 语句添加到事务中
                 self.save()
 
-            def save(self):
                 """将SQL语句添加到事务中"""
                 field = list()  # 用于格式化sql语句时储存的字段名
                 args = list()  # 用于格式化sql语句时储存的数据
@@ -126,27 +149,29 @@ class Model(metaclass=Model_metaclass):
                 # 格式化sql语句
                 sql = 'delete from {table_name} where {condition}'.format(table_name=self.__table__,
                                                                           condition=" and ".join(condition_list))
-                print(sql)  # 测试用
+                print("删除：", sql)  # 测试用
+                self.sql_list.append(sql)
 
-        d = Delete_class(self.__table__, self.__mappings__, **kwargs)
+        d = Delete_class(self.__table__, self.__mappings__, self.sql_list, **kwargs)
         return d
 
     def Filter(self, show_fields, **kwargs):
         """查找数据"""
 
         class Filter_class(Model):
-            def __init__(self, table_name, mappings, show_fields, **kwargs):
+            def __init__(self, table_name, mappings, sql_list, show_fields, **kwargs):
                 self.__mappings__ = mappings
                 self.__table__ = table_name
                 self.show_fields = show_fields
+                self.sql_list = sql_list
+
                 for k, v in kwargs.items():
-                    print("Found Value ===== ", k, ':', v)
+                    # print("Found Value ===== ", k, ':', v)
                     setattr(self, k, v)  # 注意！不能使用 self.k = v 来储存
 
                 # 初始化完成后，执行 save() 方法将 sql 语句添加到事务中
                 self.save()
 
-            def save(self):
                 """将SQL语句添加到事务中"""
                 field = list()  # 用于格式化sql语句时储存的字段名
                 args = list()  # 用于格式化sql语句时储存的数据
@@ -172,28 +197,30 @@ class Model(metaclass=Model_metaclass):
                                                                                    table_name=self.__table__,
                                                                                    condition=" and ".join(
                                                                                        condition_list))
-                print(sql)  # 测试用
+                print("查找：", sql)  # 测试用
+                self.sql_list.append(sql)
 
-        f = Filter_class(self.__table__, self.__mappings__, show_fields, **kwargs)
+        f = Filter_class(self.__table__, self.__mappings__, self.sql_list, show_fields, **kwargs)
         return f
 
     def Update(self, modify_fields, **kwargs):
         """更新数据"""
 
         class Update_class(Model):
-            def __init__(self, table_name, mappings, modify_fields, **kwargs):
+            def __init__(self, table_name, mappings, sql_list, modify_fields, **kwargs):
                 self.__mappings__ = mappings
                 self.__table__ = table_name
                 self.modify_fields = modify_fields
+                self.sql_list = sql_list
+
                 # 将变量储存为实例属性
                 for k, v in kwargs.items():
-                    print("Found Value ===== ", k, ':', v)
+                    # print("Found Value ===== ", k, ':', v)
                     setattr(self, k, v)  # 注意！不能使用 self.k = v 来储存
 
                 # 初始化完成后，执行 save() 方法将 sql 语句添加到事务中
                 self.save()
 
-            def save(self):
                 """将SQL语句添加到事务中"""
                 field = list()  # 用于格式化sql语句时储存的字段名
                 args = list()  # 用于格式化sql语句时储存的数据
@@ -213,7 +240,7 @@ class Model(metaclass=Model_metaclass):
                     if isinstance(v, str):
                         v = """'%s'""" % v
                     condition_list.append("{}={}".format(k, v))
-                print(condition_list)
+                # print(condition_list)
 
                 # 将要修改的字段与值转化为 字段=值 的形式
                 modify_fields_list = list()
@@ -222,17 +249,26 @@ class Model(metaclass=Model_metaclass):
                     if isinstance(v, str):
                         v = """'%s'""" % v
                     modify_fields_list.append("{}={}".format(k, v))
-                print(modify_fields_list)
+                # print(modify_fields_list)
 
                 # 格式化sql语句
                 sql = 'update {table_name} set {f_v} where {condition}'.format(table_name=self.__table__,
                                                                                f_v=','.join(modify_fields_list),
                                                                                condition=' and '.join(condition_list))
-                print(sql)  # 测试用
+                print("更新：", sql)  # 测试用
+                self.sql_list.append(sql)
 
-        u = Update_class(self.__table__, self.__mappings__, modify_fields, **kwargs)
+        u = Update_class(self.__table__, self.__mappings__, self.sql_list, modify_fields, **kwargs)
         return u
 
+    def save(self):
+        print(self.sql_list)
+        for i in self.sql_list:
+            # print(i)
+            self.cursor.execute(i)
+        self.sql_conn.commit()
+        self.cursor.close()
+        self.sql_conn.close()
 
 
 # class test_model(Model):
@@ -240,8 +276,8 @@ class Model(metaclass=Model_metaclass):
 #     name = ('user_name', 'varchar(30)')  # 使用元组储存字段名与字段类型
 #     age = ('user_age', 'int unsigned')  # 字段类型为sql语法
 #     is_delete = ('is_delete', 'boolean')
-
-
+#
+#
 # # 测试语句
 # u = test_model()
 # u.Insert(name='ALEX', age=18, is_delete=0)
@@ -250,3 +286,4 @@ class Model(metaclass=Model_metaclass):
 # u.Delete(name='Mercer', age=20)
 # u.Filter(('age', 'is_delete'), name="ALEX")  # 要返回的结果字段以元组传入，查询条件以命名参数传入
 # u.Update({'name':"AL", "age":1, 'is_delete':0}, name="ALEX")
+# u.save()

@@ -23,12 +23,13 @@ def application(request_url, request_lines, start_response):
                 # print("== application.py == func:application == urls ==>", urls.urls)
                 if len(parameters) == 0:
                     return view_func()
-                elif len(parameters) == 0:
+                elif len(parameters) != 0:
                     return view_func(*parameters)
     except Exception as e:
-        # print('== application.py == func:application == application Exception ==>', e)
+        print('== application.py == func:application == application Exception ==>', e)
         start_response('HTTP/1.1 404 Not Found', [])
         return 'File Not Found'
     else:
+        start_response('HTTP/1.1 404 Not Found', [])
         return ''
 
